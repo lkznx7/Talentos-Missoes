@@ -1,0 +1,16 @@
+{
+  "eventId": "b4c3d2e1-2222-5bbb-9ccc-abcdefabcdef",
+  "eventType": "application.status_changed",
+  "schemaVersion": "1.0.0",
+  "occurredAt": "2026-10-13T13:00:00Z",
+  "producer": "S3",
+  "aggregate": { "type": "Application", "id": "11111111-2222-3333-4444-555555555555" },
+  "correlationId": "corr-002",
+  "payload": {
+    "applicationId": "11111111-2222-3333-4444-555555555555",
+    "from": "created",
+    "to": "screening",
+    "changedBy": "user:company-admin",
+    "changedAt": "2026-10-13T13:00:00Z"
+  }
+}

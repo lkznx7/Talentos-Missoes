@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: ${GATEWAY_CONNECT_TIMEOUT_MS:3000}
+            response-timeout: ${GATEWAY_RESPONSE_TIMEOUT:5s}
+          routes:
+            - id: candidaturas-mission-application
+              uri: ${CANDIDATURAS_SERVICE_URL:http://localhost:8083}
+              predicates: [Path=/v1/missions/*/applications/**]
+            - id: talentos-service
+              uri: ${TALENTOS_SERVICE_URL:http://localhost:8081}
+              predicates: [Path=/v1/talents/**]
+            - id: empresas-missoes-service
+              uri: ${EMPRESAS_MISSOES_SERVICE_URL:http://localhost:8082}
+              predicates: [Path=/v1/companies/**, /v1/missions/**]
+            - id: candidaturas-service
+              uri: ${CANDIDATURAS_SERVICE_URL:http://localhost:8083}
+              predicates: [Path=/v1/applications/**]
+            - id: notificacoes-service
+              uri: ${NOTIFICACOES_SERVICE_URL:http://localhost:8084}
+              predicates: [Path=/v1/notifications/**]
+            - id: indicadores-service
+              uri: ${INDICADORES_SERVICE_URL:http://localhost:8085}
+              predicates: [Path=/v1/metrics/**]
+            - id: comunicacao-service
+              uri: ${COMUNICACAO_SERVICE_URL:http://localhost:8086}
+              predicates: [Path=/v1/realtime/**]
+            - id: identidade-service
+              uri: ${IDENTIDADE_SERVICE_URL:http://localhost:8087}
+              predicates: [Path=/v1/auth/**]
+            - id: integracoes-service
+              uri: ${INTEGRACOES_SERVICE_URL:http://localhost:8088}
+              predicates: [Path=/v1/webhooks/**]
+server:
+  port: ${SERVER_PORT:8080}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

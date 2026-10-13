@@ -1,0 +1,16 @@
+{
+  "eventId": "c5d4e3f2-3333-6ccc-addd-fedcbafedcba",
+  "eventType": "integration.event.received",
+  "schemaVersion": "1.0.0",
+  "occurredAt": "2026-10-13T14:00:00Z",
+  "producer": "S8",
+  "aggregate": { "type": "ExternalEvent", "id": "evt_external_123" },
+  "correlationId": "corr-003",
+  "payload": {
+    "source": "partner-a",
+    "externalEventId": "evt_external_123",
+    "receivedAt": "2026-10-13T14:00:00Z",
+    "rawRef": "object-storage/key-or-db-id",
+    "dedupKey": "partner-a:evt_external_123"
+  }
+}

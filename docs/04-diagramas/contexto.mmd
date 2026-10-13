@@ -1,0 +1,18 @@
+C4Context
+title Sistema Talentos & Missões - Contexto
+
+Person(talento, "Talento", "Mantém perfil e se candidata")
+Person(empresa, "Empresa/Admin", "Publica missões e acompanha candidaturas")
+Person(operador, "Operador", "Opera e reprocessa")
+System(sistema, "Talentos & Missões", "Conecta talentos a empresas por missões")
+System_Ext(idp, "IdP/OIDC (pendente)", "Autenticação externa")
+System_Ext(email, "Provedor de E-mail (pendente)", "Entrega de e-mails")
+System_Ext(parceiros, "Sistemas de parceiros (pendente)", "Webhooks")
+System_Ext(obs, "Observabilidade (pendente)", "Métricas/traces")
+Rel(talento, sistema, "Usa", "HTTPS")
+Rel(empresa, sistema, "Usa", "HTTPS")
+Rel(operador, sistema, "Opera", "HTTPS")
+Rel(sistema, idp, "Autentica (opcional)", "OIDC")
+Rel(sistema, email, "Envia e-mail", "HTTPS")
+Rel(sistema, parceiros, "Webhooks in/out", "HTTPS")
+Rel(sistema, obs, "Telemetria", "OTLP")

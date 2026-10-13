@@ -1,0 +1,28 @@
+sequenceDiagram
+  autonumber
+  actor EXT as Sistema Externo
+  participant GW as Webhook Endpoint (S8)
+  participant DB as DB S8
+  participant BR as Broker
+  participant WI as Worker Integrações
+  participant S? as Domínio afetado (pendente)
+
+  EXT->>GW: POST /webhooks/{source} (signed)
+  GW->>GW: validar assinatura + timestamp anti-replay
+  alt assinatura inválida
+    GW-->>EXT: 401/403 {error}
+  else assinatura válida
+    GW->>DB: persist raw event (received_at, payload) [id empotent: dedup por eventId]
+    GW-->>EXT: 202 Accepted {receiptId}
+    DB->>BR: (relay) publicar integration.event.received
+    BR->>WI: entregar
+    WI->>WI: valida/dedup (eventId)
+    alt já processado
+      WI-->>BR: ack (no-op)
+    else novo
+      WI->>S?: processar efeito de negócio (regra pendente)
+      WI->>DB: update status=processed
+    end
+  end
+  Note over GW,EXT: 202 significa aceite, não processamento completo
+  Note over WI,S?: Efeitos podem ser eventualmente consistentes

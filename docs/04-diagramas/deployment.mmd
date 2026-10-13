@@ -1,0 +1,35 @@
+graph TD
+  subgraph Prod["Ambiente Prod"]
+    LB[Load Balancer / Ingress]
+    subgraph App["Cluster App"]
+      API[API Principal]
+      W4[Worker Notificações]
+      W8[Worker Integrações]
+      W5[Worker Indicadores]
+    end
+    subgraph Data["Dados"]
+      DB[(Banco Relacional)]
+      MQ[(Broker)]
+      Cache[(Cache opcional)]
+      Obj[(Object Storage)]
+    end
+    subgraph Sec["Segurança"]
+      Vault[Cofre de Segredos]
+    end
+  end
+  Client[Clientes] --> LB
+  LB --> API
+  API --> DB
+  API --> MQ
+  API --> Cache
+  W4 --> MQ
+  W4 --> DB
+  W8 --> MQ
+  W8 --> DB
+  W5 --> MQ
+  W5 --> DB
+  API --> Vault
+  W4 --> Vault
+  W8 --> Vault
+  SaaS[E-mail Provider / IdP / Parceiros] <--> API
+  SaaS <--> W8

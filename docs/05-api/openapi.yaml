@@ -1,0 +1,366 @@
+openapi: 3.1.0
+info:
+  title: Talentos & Missões API
+  version: 1.0.0
+  description: >
+    API da plataforma Talentos & Missões. Requisitos funcionais detalhados em docs/02-requisitos.
+servers:
+  - url: https://api.talentos-missoes.example/v1
+    description: Exemplo
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: OK
+  /auth/login:
+    post:
+      summary: Autenticar usuário
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        "401":
+          $ref: "#/components/responses/Problem401"
+  /auth/refresh:
+    post:
+      summary: Renovar access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: Tokens renovados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        "401":
+          $ref: "#/components/responses/Problem401"
+  /auth/me:
+    get:
+      summary: Dados da identidade atual
+      responses:
+        "200":
+          description: Identidade
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+  /missions:
+    get:
+      summary: Listar missões
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [draft, published, paused, closed] }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - in: query
+          name: cursor
+          schema: { type: string }
+      responses:
+        "200":
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionList"
+    post:
+      summary: Criar missão (rascunho)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MissionCreate"
+      responses:
+        "201":
+          description: Criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mission"
+  /missions/{missionId}:
+    get:
+      summary: Obter missão
+      parameters:
+        - in: path
+          name: missionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Missão
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mission"
+        "404":
+          $ref: "#/components/responses/Problem404"
+    patch:
+      summary: Atualizar missão
+      parameters:
+        - in: path
+          name: missionId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MissionUpdate"
+      responses:
+        "200":
+          description: Atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mission"
+  /missions/{missionId}/publish:
+    post:
+      summary: Publicar missão
+      parameters:
+        - in: path
+          name: missionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Publicada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mission"
+  /missions/{missionId}/applications:
+    post:
+      summary: Criar candidatura
+      parameters:
+        - in: path
+          name: missionId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Candidatura criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+        "409":
+          $ref: "#/components/responses/Problem409"
+  /applications/{applicationId}:
+    get:
+      summary: Obter candidatura
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Candidatura
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+  /notifications:
+    get:
+      summary: Listar notificações do usuário
+      parameters:
+        - in: query
+          name: unread
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: Notificações
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationList"
+  /webhooks/{source}:
+    post:
+      summary: Receber webhook externo
+      security: []
+      parameters:
+        - in: path
+          name: source
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-Signature
+          required: true
+          schema: { type: string }
+        - in: header
+          name: X-Timestamp
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "202":
+          description: Aceito para processamento
+        "401":
+          $ref: "#/components/responses/Problem401"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Problem401:
+      description: Não autorizado
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Problem404:
+      description: Não encontrado
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Problem409:
+      description: Conflito
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, errorCode]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        correlationId: { type: string }
+        traceId: { type: string }
+        errorCode: { type: string }
+    Me:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        roles: { type: array, items: { type: string } }
+        permissions: { type: array, items: { type: string } }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password, minLength: 8 }
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+    TokenPair:
+      type: object
+      required: [accessToken, refreshToken, expiresIn]
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        expiresIn: { type: integer }
+    Mission:
+      type: object
+      required: [id, companyId, title, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        companyId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [draft, published, paused, closed] }
+        requirements: { type: object, additionalProperties: true }
+        deadline: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    MissionCreate:
+      type: object
+      required: [companyId, title]
+      properties:
+        companyId: { type: string, format: uuid }
+        title: { type: string, minLength: 3, maxLength: 200 }
+        description: { type: string }
+        requirements: { type: object, additionalProperties: true }
+        deadline: { type: string, format: date-time }
+    MissionUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        requirements: { type: object, additionalProperties: true }
+        deadline: { type: string, format: date-time }
+    MissionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Mission" }
+        nextCursor: { type: string, nullable: true }
+    Application:
+      type: object
+      required: [id, missionId, talentId, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        missionId: { type: string, format: uuid }
+        talentId: { type: string, format: uuid }
+        status: { type: string, enum: [created, screening, interview, offered, accepted, rejected] }
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              state: { type: string }
+              at: { type: string, format: date-time }
+              by: { type: string }
+        createdAt: { type: string, format: date-time }
+    Notification:
+      type: object
+      required: [id, userId, type, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        type: { type: string }
+        title: { type: string }
+        body: { type: string }
+        status: { type: string, enum: [queued, sent, failed, dead_lettered, read] }
+        createdAt: { type: string, format: date-time }
+    NotificationList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Notification" }
