@@ -1,3 +1,7 @@
+Project talentos_missoes {
+  database_type: 'PostgreSQL'
+}
+
 // Consolidado - modelo lógico (proposto)
 // Validação sugerida em dbdiagram.io
 
@@ -11,7 +15,7 @@ TableGroup identity {
   outbox_event
 }
 
-Table user {
+Table identity.user {
   id uuid [pk]
   email varchar(320) [not null, unique]
   password_hash varchar(255) [not null]
@@ -22,19 +26,19 @@ Table user {
   deleted_at timestamptz
 }
 
-Table role {
+Table identity.role {
   id uuid [pk]
   code varchar(80) [not null, unique]
   description varchar(255)
 }
 
-Table permission {
+Table identity.permission {
   id uuid [pk]
   code varchar(120) [not null, unique]
   description varchar(255)
 }
 
-Table user_role {
+Table identity.user_role {
   user_id uuid [not null]
   role_id uuid [not null]
   Indexes {
@@ -42,7 +46,7 @@ Table user_role {
   }
 }
 
-Table role_permission {
+Table identity.role_permission {
   role_id uuid [not null]
   permission_id uuid [not null]
   Indexes {
@@ -50,7 +54,7 @@ Table role_permission {
   }
 }
 
-Table session {
+Table identity.session {
   id uuid [pk]
   user_id uuid [not null]
   refresh_token_hash varchar(255) [not null]
@@ -61,7 +65,7 @@ Table session {
   user_agent varchar(500)
 }
 
-Table outbox_event {
+Table identity.outbox_event {
   id uuid [pk]
   service_name varchar(80) [not null]
   aggregate_type varchar(80) [not null]
@@ -85,7 +89,7 @@ TableGroup talentos {
   portfolio_item
 }
 
-Table talent {
+Table talentos.talent {
   id uuid [pk]
   user_id uuid [not null, unique]
   full_name varchar(200) [not null]
@@ -98,7 +102,7 @@ Table talent {
   deleted_at timestamptz
 }
 
-Table skill {
+Table talentos.skill {
   id uuid [pk]
   talent_id uuid [not null]
   name varchar(120) [not null]
@@ -109,7 +113,7 @@ Table skill {
   }
 }
 
-Table experience {
+Table talentos.experience {
   id uuid [pk]
   talent_id uuid [not null]
   company_name varchar(200) [not null]
@@ -119,7 +123,7 @@ Table experience {
   description text
 }
 
-Table portfolio_item {
+Table talentos.portfolio_item {
   id uuid [pk]
   talent_id uuid [not null]
   title varchar(200) [not null]
@@ -135,7 +139,7 @@ TableGroup empresas_missoes {
   mission
 }
 
-Table company {
+Table empresas_missoes.company {
   id uuid [pk]
   legal_name varchar(255) [not null]
   trade_name varchar(255)
@@ -146,7 +150,7 @@ Table company {
   updated_at timestamptz [not null]
 }
 
-Table company_member {
+Table empresas_missoes.company_member {
   company_id uuid [not null]
   user_id uuid [not null]
   member_role varchar(40) [not null]
@@ -156,7 +160,7 @@ Table company_member {
   }
 }
 
-Table mission {
+Table empresas_missoes.mission {
   id uuid [pk]
   company_id uuid [not null]
   title varchar(200) [not null]
@@ -176,7 +180,7 @@ TableGroup candidaturas {
   application_history
 }
 
-Table application {
+Table candidaturas.application {
   id uuid [pk]
   mission_id uuid [not null]
   talent_id uuid [not null]
@@ -190,7 +194,7 @@ Table application {
   }
 }
 
-Table application_history {
+Table candidaturas.application_history {
   id uuid [pk]
   application_id uuid [not null]
   from_state varchar(30)
@@ -205,7 +209,7 @@ TableGroup notificacoes {
   notification_attempt
 }
 
-Table notification {
+Table notificacoes.notification {
   id uuid [pk]
   user_id uuid [not null]
   type varchar(80) [not null]
@@ -216,7 +220,7 @@ Table notification {
   read_at timestamptz
 }
 
-Table notification_attempt {
+Table notificacoes.notification_attempt {
   id uuid [pk]
   notification_id uuid [not null]
   attempted_at timestamptz [not null]
@@ -230,7 +234,7 @@ TableGroup indicadores {
   metric_series
 }
 
-Table metric_event {
+Table indicadores.metric_event {
   id uuid [pk]
   event_id uuid [not null, unique]
   event_name varchar(120) [not null]
@@ -240,7 +244,7 @@ Table metric_event {
   dimensions jsonb
 }
 
-Table metric_series {
+Table indicadores.metric_series {
   metric_name varchar(120) [not null]
   granularity varchar(20) [not null]
   bucket_start timestamptz [not null]
@@ -256,7 +260,7 @@ TableGroup comunicacao {
   message
 }
 
-Table conversation {
+Table comunicacao.conversation {
   id uuid [pk]
   company_id uuid [not null]
   talent_id uuid [not null]
@@ -264,7 +268,7 @@ Table conversation {
   created_at timestamptz [not null]
 }
 
-Table message {
+Table comunicacao.message {
   id uuid [pk]
   conversation_id uuid [not null]
   sender_user_id uuid [not null]
@@ -280,7 +284,7 @@ TableGroup integracoes {
   webhook_delivery
 }
 
-Table external_event {
+Table integracoes.external_event {
   id uuid [pk]
   source varchar(80) [not null]
   external_event_id varchar(255) [not null]
@@ -296,7 +300,7 @@ Table external_event {
   }
 }
 
-Table webhook_delivery {
+Table integracoes.webhook_delivery {
   id uuid [pk]
   target varchar(2048) [not null]
   event_ref varchar(255) [not null]
@@ -306,8 +310,49 @@ Table webhook_delivery {
   next_retry_at timestamptz
 }
 
-// Cross-schema referências conceituais (não necessariamente FK física):
-// talent.user_id -> identity.user.id
-// mission.company_id -> company.id
-// application.mission_id -> mission.id (mesmo row set se DB compartilhado; lógico se separado)
-// notification.user_id -> identity.user.id
+// Intra-schema relationships with physical foreign keys.
+Ref: identity.user_role.user_id > identity.user.id
+Ref: identity.user_role.role_id > identity.role.id
+Ref: identity.role_permission.role_id > identity.role.id
+Ref: identity.role_permission.permission_id > identity.permission.id
+Ref: identity.session.user_id > identity.user.id
+
+Ref: talentos.skill.talent_id > talentos.talent.id
+Ref: talentos.experience.talent_id > talentos.talent.id
+Ref: talentos.portfolio_item.talent_id > talentos.talent.id
+
+Ref: empresas_missoes.company_member.company_id > empresas_missoes.company.id
+Ref: empresas_missoes.mission.company_id > empresas_missoes.company.id
+
+Ref: candidaturas.application_history.application_id > candidaturas.application.id
+Ref: notificacoes.notification_attempt.notification_id > notificacoes.notification.id
+Ref: comunicacao.message.conversation_id > comunicacao.conversation.id
+
+// Cross-service links are correlated IDs without physical foreign keys, per logical model.
+// talentos.talent.user_id -> identity.user.id (unique)
+// empresas_missoes.company.created_by_user_id -> identity.user.id (opcional)
+// empresas_missoes.company_member.user_id -> identity.user.id
+// candidaturas.application.mission_id -> empresas_missoes.mission.id
+// candidaturas.application.talent_id -> talentos.talent.id
+// notificacoes.notification.user_id -> identity.user.id
+// comunicacao.conversation.company_id -> empresas_missoes.company.id
+// comunicacao.conversation.talent_id -> talentos.talent.id
+// comunicacao.conversation.mission_id -> empresas_missoes.mission.id (opcional)
+// comunicacao.message.sender_user_id -> identity.user.id
+// Outbox: the logical model mentions identity.outbox_event and shared.outbox_event;
+// ownership/schema is pending; DBML preserves identity.outbox_event for now.
+
+
+// Shared idempotency infrastructure; physical deployment scope may vary by consumer.
+TableGroup shared {
+  processed_event
+}
+
+Table shared.processed_event {
+  consumer_name varchar(120) [not null]
+  event_id uuid [not null]
+  processed_at timestamptz [not null]
+  Indexes {
+    (consumer_name, event_id) [pk]
+  }
+}
