@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: Auth-Service
+server:
+  port: 8081
+
+
+jwt:
+  secret: ${JWT_SECRET:2CYABc7lyrsSEHApQsEyGb59o+4VrhjOBb0ZGi4W4rs=}
+  expiration: ${JWT_EXPIRATION:7200}
+
