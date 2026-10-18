@@ -1,56 +1,38 @@
-# Talentos & Missões — Documentação Técnica
+# Documentação — Talentos & Missões
 
-> Documentação de arquitetura e implementação da plataforma **Talentos & Missões**, que conecta talentos (pessoas profissionais) a empresas por meio de missões (oportunidades publicadas na plataforma).
+A plataforma conecta profissionais a empresas por meio de missões. O fluxo principal é manter um perfil, publicar uma oportunidade, candidatar-se e acompanhar a seleção.
 
-## Sumário
+## Modelo oficial inicial
 
-- [Visão geral](01-visao-geral/contexto.md)
-- [Objetivos e escopo](01-visao-geral/objetivos-e-escopo.md)
-- [Glossário](01-visao-geral/glossario.md)
-- [Atores e sistemas externos](01-visao-geral/atores-e-sistemas-externos.md)
-- [Requisitos funcionais](02-requisitos/requisitos-funcionais.md)
-- [Requisitos não funcionais](02-requisitos/requisitos-nao-funcionais.md)
-- [Regras de negócio](02-requisitos/regras-de-negocio.md)
-- [Casos de uso](02-requisitos/casos-de-uso.md)
-- [Critérios de aceite](02-requisitos/criterios-de-aceite.md)
-- [Arquitetura](03-arquitetura/README.md)
-- [Diagramas](04-diagramas/)
-- [APIs](05-api/convencoes.md)
-- [Eventos](06-eventos/catalogo-de-eventos.md)
-- [Dados](07-dados/modelo-conceitual.md)
-- [Segurança](08-seguranca/ameacas-e-mitigacoes.md)
-- [Qualidade](09-qualidade/estrategia-de-testes.md)
-- [Operação](10-operacao/ambientes.md)
-- [Governança](11-governanca/decisoes-pendentes.md)
+- [Entidades, campos e relacionamentos](modelo-dados-oficial.md).
+- [Canais e contratos de comunicação](comunicacao-entidades.md).
+- [Revisão e limites de implementação](revisao-documentacao.md).
 
-## Convenções de status
+Esses documentos prevalecem para o núcleo inicial de cinco tabelas. Descrições ampliadas dos serviços representam evolução quando excedem esse modelo.
 
-Cada decisão, requisito derivado de inferência e pendência é classificada como:
+## Microsserviços
 
-- **Definida:** informada explicitamente no contexto do projeto.
-- **Proposta:** recomendação técnica ainda não aprovada.
-- **Pendente:** informação que precisa ser decidida.
+Cada serviço possui um documento principal com responsabilidades, dados, integrações, limites e pendências.
 
-Quando uma informação não foi definida, ela é registrada como pendência e, quando útil, accompagnada de alternativas, vantagens e desvantagens.
+| Serviço | Documento |
+|---|---|
+| Auth Service | [Contas e autenticação](microsservicos/auth-service.md) |
+| Talentos | [Perfis profissionais](microsservicos/talentos-service.md) |
+| Empresas e Missões | [Empresas e oportunidades](microsservicos/empresas-missoes-service.md) |
+| Candidaturas | [Candidatura e seleção](microsservicos/candidaturas-service.md) |
+| Notificações | [Avisos e entregas](microsservicos/notificacoes-service.md) |
+| Indicadores | [Métricas de negócio](microsservicos/indicadores-service.md) |
+| Comunicação | [Conversas e mensagens](microsservicos/comunicacao-service.md) |
+| Integrações | [Eventos de sistemas externos](microsservicos/integracoes-service.md) |
 
-## Princípios
+## Referências comuns
 
-1. **Domínio antes de tecnologia:** requisitos e fronteiras de responsabilidade orientam escolhas técnicas.
-2. **Separação de responsabilidades:** cada domínio lógico possui autoridade exclusiva sobre seus dados e invariantes.
-3. **Clareza de comunicação:** toda interação entre componentes tem natureza e semântica documentadas.
-4. **Tolerância a falhas declarada:** garantias finitas são documentadas; não se promete execução exatamente uma vez sem justificativa.
-5. **Evolução segura:** mudanças de contrato, schema e dados são versionadas e compatíveis quando possível.
+- [Arquitetura e regras comuns](arquitetura.md): fronteiras dos serviços, consistência, segurança e verificações.
+- [Desenvolvimento local](desenvolvimento-local.md): comandos, portas e diagnóstico.
+- [Pendências](pendencias.md): decisões necessárias para implementar e integrar o produto.
 
-## Como usar esta documentação
+## Como interpretar
 
-- **Desenvolvedores:** comece por `03-arquitetura/visao-geral.md`, depois consulte APIs, contratos de eventos e DBML.
-- **Arquitetos/revisores:** priorize ADRs, matriz de rastreabilidade e relatório de revisão de consistência.
-- **Equipe de produto:** consulte requisitos, casos de uso e critérios de aceite.
-- **Operação/SRE:** consulte ambientes, monitoramento, runbooks e cenários de falha.
+Responsabilidade é o escopo esperado do serviço; não comprova implementação. O Auth Service descreve comportamentos encontrados nos fontes, com limitações explícitas. Os demais serviços estão em desenvolvimento. Só considerar um fluxo validado após testes da implementação real.
 
-## Escopo desta versão
-
-Esta documentação não assume regras de negócio não definidas (ex.: limites de candidaturas, etapas obrigatórias de seleção, pagamentos, avaliações, prazos de retenção específicos). Itens pendentes estão em [decisoes-pendentes.md](11-governanca/decisoes-pendentes.md).## Novos artefatos
-
-- ADRs: [docs/adr/README.md](adr/README.md)
-- Arquitetura de implementação: [architecture/README.md](../architecture/README.md)
+Atualize o documento do serviço quando mudar seu escopo ou contrato. A estrutura inicial está definida no modelo oficial; migrations, contratos executáveis e validação do banco ainda precisam ser implementados. Pagamentos e avaliações não estão confirmados no escopo.

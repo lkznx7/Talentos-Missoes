@@ -1,0 +1,87 @@
+// Modelo oficial inicial. Regras e limites: ../modelo-dados-oficial.md
+// Destino: PostgreSQL compartilhado. TableGroup representa domínio lógico.
+Project talentos_missoes {
+  database_type: 'PostgreSQL'
+}
+
+Enum ROLE {
+  ADMIN
+  USER
+  EMPRESA
+}
+
+Enum STATUS_CANDIDATURA {
+  PENDENTE
+  APROVADA
+  RECUSADA
+  CANCELADA
+}
+
+Table auth {
+  id uuid [pk]
+  username varchar(100) [not null, unique]
+  password_hash varchar(255) [not null]
+  role ROLE [not null, default: 'USER']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  ativo boolean [not null, default: true]
+}
+
+Table talentos {
+  id_auth uuid [pk, ref: - auth.id]
+  nome varchar(100) [not null]
+  sobrenome varchar(100)
+  sobre text
+  data_nascimento date
+  habilidades text
+  experiencias text
+  link_portfolio varchar(500)
+}
+
+Table empresas {
+  id_auth uuid [pk, ref: - auth.id]
+  nome varchar(150) [not null]
+  descricao text
+  site varchar(500)
+}
+
+Table missoes {
+  id uuid [pk]
+  empresa_id uuid [not null, ref: > empresas.id_auth]
+  titulo varchar(150) [not null]
+  descricao text [not null]
+  requisitos text
+  prazo date
+  aberta boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table candidaturas {
+  id uuid [pk]
+  talento_id uuid [not null, ref: > talentos.id_auth]
+  missao_id uuid [not null, ref: > missoes.id]
+  mensagem text
+  status STATUS_CANDIDATURA [not null, default: 'PENDENTE']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (talento_id, missao_id) [unique]
+  }
+}
+
+TableGroup identidade_service {
+  auth
+}
+
+TableGroup talentos_service {
+  talentos
+}
+
+TableGroup empresas_missoes_service {
+  empresas
+  missoes
+}
+
+TableGroup candidaturas_service {
+  candidaturas
+}
